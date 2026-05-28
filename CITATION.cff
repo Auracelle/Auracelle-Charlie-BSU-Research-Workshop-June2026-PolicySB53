@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use Auracelle Charlie in your research, please cite it as below."
+type: software
+title: "Auracelle Charlie v6.0: AI Governance War Game Simulation Sandbox"
+version: "6.0"
+date-released: "2026-05-27"
+abstract: >
+  Auracelle Charlie is a structured wargaming instrument for stress-testing AI governance
+  policy using the E-AGPO-HT v3.1 (Evaluative Agentic Governance Policy Optimisation —
+  Hybrid Taxonomy) framework. Participants negotiate real-world AI governance scenarios
+  through six adversarial rounds with AI agents, automated Red Team shocks, and a Policy
+  Owner agent. The instrument generates structured RL-ready research data for doctoral
+  analysis at Bath Spa University.
+authors:
+  - family-names: Evans
+    given-names: Grace-Alice
+    email: grace-alice.evans@bathspa.ac.uk
+    affiliation: "Auracelle AI Governance Labs / Bath Spa University"
+    orcid: ""
+repository-code: "https://github.com/auracelle/auracelle-charlie"
+url: "https://auracelle.github.io/Auracelle-AI-Governance-Labs-Platform-Comms-Public"
+license: "CC-BY-NC-4.0"
+keywords:
+  - AI governance
+  - wargaming
+  - policy simulation
+  - reinforcement learning
+  - E-AGPO-HT
+  - California SB-53
+  - frontier AI
+  - Bath Spa University
+  - doctoral research
+  - NATO SAS-219
+  - UC Berkeley CLTC
+references:
+  - type: article
+    title: "UC Berkeley CLTC White Paper"
+    authors:
+      - family-names: Evans
+        given-names: Grace-Alice
+      - family-names: Cleaveland
+        given-names: ""
+    year: 2021
+    institution:
+      name: "UC Berkeley Center for Long-Term Cybersecurity"
