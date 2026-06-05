@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auracelle Charlie BSU Simulation Environment — Policy SB-53</title>
+<meta name="description" content="Auracelle Charlie v6.0 — AI governance wargame simulation for stress-testing policy under adversarial conditions. Bath Spa University doctoral research instrument.">
+<meta property="og:title" content="Auracelle Charlie BSU Simulation Environment — Policy SB-53">
+<meta property="og:description" content="Stress-test AI governance policy using structured wargaming. Currently stress-testing California SB-53 — the first enforceable AI safety law in the US.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:#090d12;
+  color:#c8d8e8;
+  font-family:'Inter',sans-serif;
+  font-size:15px;
+  line-height:1.65;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Design tokens ── */
+:root{
+  --teal:   #00d4b8;
+  --teal2:  #00ffd8;
+  --blue:   #5aabff;
+  --amber:  #ffb830;
+  --red:    #ff5050;
+  --navy:   #090d12;
+  --navy2:  #0d1520;
+  --navy3:  #111c28;
+  --rule:   rgba(255,255,255,0.08);
+  --ink:    #ffffff;
+  --ink2:   #e8f4ff;
+  --ink3:   #a8c8d8;
+  --ink4:   #5a7888;
+}
+
+/* ── Background grid ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,184,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,184,0.025) 1px, transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ── Noise overlay ── */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:.6;
+}
+
+/* ── Layout ── */
+.wrap{ position:relative;z-index:1; }
+
+/* ── Header / Hero ── */
+header{
+  position:relative;
+  padding:80px 48px 72px;
+  max-width:1100px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:40px;
+  align-items:start;
+}
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--teal);font-weight:700;
+  margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;
+}
+.hero-eyebrow::before{
+  content:'';display:block;width:32px;height:1px;background:var(--teal);
+}
+h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(38px,5vw,62px);
+  font-weight:700;
+  color:#ffffff;
+  line-height:1.1;
+  letter-spacing:-0.5px;
+  margin-bottom:8px;
+}
+h1 em{
+  font-style:italic;
+  color:var(--teal);
+}
+.hero-version{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--ink4);letter-spacing:1px;
+  margin-bottom:24px;
+  display:block;
+}
+.hero-lead{
+  font-size:17px;color:var(--ink3);line-height:1.75;
+  max-width:560px;margin-bottom:36px;
+}
+.hero-lead strong{ color:#ffffff;font-weight:600; }
+
+/* ── Badges ── */
+.badge-row{
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin-bottom:40px;
+}
+.badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  padding:4px 10px;border-radius:2px;font-weight:700;
+  border:1px solid;
+}
+.badge-teal{ color:var(--teal);border-color:rgba(0,212,184,0.35);background:rgba(0,212,184,0.08); }
+.badge-blue{ color:var(--blue);border-color:rgba(90,171,255,0.35);background:rgba(90,171,255,0.08); }
+.badge-amber{ color:var(--amber);border-color:rgba(255,184,48,0.35);background:rgba(255,184,48,0.08); }
+.badge-red{ color:var(--red);border-color:rgba(255,80,80,0.35);background:rgba(255,80,80,0.08); }
+
+/* ── CTA buttons ── */
+.cta-row{ display:flex;gap:14px;flex-wrap:wrap;align-items:center; }
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--teal);color:#000d0c;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;text-decoration:none;
+  padding:13px 24px;border-radius:2px;
+  transition:all 0.2s;
+  border:2px solid var(--teal);
+}
+.btn-primary:hover{ background:var(--teal2);border-color:var(--teal2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,212,184,0.25); }
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--ink2);
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;text-decoration:none;
+  padding:13px 24px;border-radius:2px;
+  border:1px solid rgba(255,255,255,0.18);
+  transition:all 0.2s;
+}
+.btn-secondary:hover{ border-color:rgba(255,255,255,0.4);color:#ffffff;background:rgba(255,255,255,0.05); }
+
+/* ── Hero visual (right column) ── */
+.hero-panel{
+  background:rgba(0,212,184,0.04);
+  border:1px solid rgba(0,212,184,0.15);
+  border-radius:4px;
+  padding:28px;
+  min-width:260px;
+  position:sticky;top:40px;
+}
+.hero-panel-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--teal);font-weight:700;margin-bottom:16px;
+}
+.config-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid var(--rule);
+  font-size:12px;
+}
+.config-row:last-child{ border-bottom:none; }
+.config-key{ color:var(--ink4);font-family:'JetBrains Mono',monospace;font-size:10px; }
+.config-val{ color:#ffffff;font-weight:600;font-size:12px;text-align:right; }
+.config-val.teal{ color:var(--teal); }
+.config-val.amber{ color:var(--amber); }
+.config-val.red{ color:var(--red); }
+
+/* ── Section spacing ── */
+section{
+  max-width:1100px;margin:0 auto;
+  padding:0 48px 80px;
+  position:relative;z-index:1;
+}
+
+/* ── Section headings ── */
+.section-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--teal);font-weight:700;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-label::before{
+  content:'';display:block;width:24px;height:1px;background:var(--teal);
+}
+h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,3vw,38px);
+  font-weight:700;color:#ffffff;
+  line-height:1.2;margin-bottom:16px;
+}
+h2 em{ font-style:italic;color:var(--teal); }
+
+/* ── Divider ── */
+.divider{
+  max-width:1100px;margin:0 auto;padding:0 48px;
+  position:relative;z-index:1;
+}
+.divider hr{
+  border:none;border-top:1px solid var(--rule);
+  margin-bottom:80px;
+}
+
+/* ── Tab grid ── */
+.tab-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px;margin-top:32px;
+}
+.tab-card{
+  background:var(--navy3);
+  border:1px solid var(--rule);
+  border-radius:3px;
+  padding:18px 16px;
+  transition:all 0.18s;
+}
+.tab-card:hover{
+  border-color:rgba(0,212,184,0.3);
+  background:rgba(0,212,184,0.05);
+  transform:translateY(-2px);
+}
+.tab-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:18px;font-weight:700;
+  color:var(--teal);margin-bottom:8px;display:block;
+}
+.tab-name{
+  font-size:12.5px;font-weight:600;color:#ffffff;
+  margin-bottom:6px;
+}
+.tab-desc{
+  font-size:11.5px;color:var(--ink4);line-height:1.5;
+}
+
+/* ── BGC domain table ── */
+.bgc-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:10px;margin-top:28px;
+}
+.bgc-card{
+  display:flex;align-items:flex-start;gap:14px;
+  background:var(--navy3);border:1px solid var(--rule);
+  border-radius:3px;padding:16px;
+}
+.bgc-code{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;font-weight:700;color:var(--teal);
+  flex-shrink:0;min-width:36px;
+}
+.bgc-name{ font-size:13px;color:var(--ink2);font-weight:500; }
+
+/* ── KPI row ── */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px;margin-top:28px;
+}
+.kpi-card{
+  background:var(--navy3);border:1px solid var(--rule);
+  border-left:3px solid var(--teal);
+  border-radius:0 3px 3px 0;padding:16px 18px;
+}
+.kpi-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:22px;font-weight:700;color:var(--teal);
+  margin-bottom:6px;
+}
+.kpi-label{ font-size:12.5px;font-weight:600;color:#ffffff;margin-bottom:4px; }
+.kpi-desc{ font-size:11.5px;color:var(--ink4);line-height:1.5; }
+
+/* ── Affiliation bar ── */
+.affil-bar{
+  display:flex;flex-wrap:wrap;gap:0;
+  border:1px solid var(--rule);border-radius:3px;overflow:hidden;
+  margin-top:28px;
+}
+.affil-item{
+  flex:1;min-width:200px;
+  padding:20px 24px;
+  border-right:1px solid var(--rule);
+}
+.affil-item:last-child{ border-right:none; }
+.affil-name{
+  font-size:13px;font-weight:700;color:#ffffff;margin-bottom:4px;
+}
+.affil-role{ font-size:12px;color:var(--ink4);line-height:1.5; }
+
+/* ── How to use ── */
+.steps{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;margin-top:32px;
+}
+.step{
+  display:flex;align-items:flex-start;gap:16px;
+}
+.step-num{
+  flex-shrink:0;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(0,212,184,0.12);
+  border:1px solid rgba(0,212,184,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  color:var(--teal);
+}
+.step-body{ flex:1; }
+.step-title{ font-size:13.5px;font-weight:700;color:#ffffff;margin-bottom:4px; }
+.step-text{ font-size:12.5px;color:var(--ink4);line-height:1.55; }
+
+/* ── Research callout ── */
+.research-box{
+  background:rgba(90,171,255,0.06);
+  border:1px solid rgba(90,171,255,0.2);
+  border-left:3px solid var(--blue);
+  border-radius:0 3px 3px 0;
+  padding:24px 28px;margin-top:32px;
+}
+.research-box p{ font-size:14px;color:var(--ink3);line-height:1.75;margin-bottom:10px; }
+.research-box p:last-child{ margin-bottom:0; }
+.research-box strong{ color:#ffffff;font-weight:600; }
+
+/* ── Footer ── */
+footer{
+  position:relative;z-index:1;
+  border-top:1px solid var(--rule);
+  max-width:1100px;margin:0 auto;
+  padding:40px 48px;
+  display:flex;flex-wrap:wrap;justify-content:space-between;
+  align-items:flex-start;gap:32px;
+}
+.footer-brand{
+  font-family:'Playfair Display',serif;
+  font-size:18px;font-weight:700;color:#ffffff;
+  margin-bottom:6px;
+}
+.footer-brand em{ color:var(--teal);font-style:italic; }
+.footer-sub{ font-size:12px;color:var(--ink4); }
+.footer-links{
+  display:flex;flex-direction:column;gap:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:0.5px;
+}
+.footer-links a{
+  color:var(--ink4);text-decoration:none;
+  transition:color 0.15s;
+}
+.footer-links a:hover{ color:var(--teal); }
+.footer-copy{
+  font-size:11px;color:var(--ink4);
+  align-self:flex-end;
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ── Pulse dot ── */
+@keyframes pulse{
+  0%,100%{ opacity:1; }
+  50%{ opacity:0.3; }
+}
+.pulse{ display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--teal);animation:pulse 2s ease-in-out infinite;
+  margin-right:6px;vertical-align:middle; }
+
+/* ── Fade-in animation ── */
+@keyframes fadeUp{
+  from{ opacity:0;transform:translateY(20px); }
+  to{   opacity:1;transform:translateY(0); }
+}
+.fade-up{ animation:fadeUp 0.6s ease both; }
+.delay-1{ animation-delay:0.1s; }
+.delay-2{ animation-delay:0.2s; }
+.delay-3{ animation-delay:0.3s; }
+.delay-4{ animation-delay:0.4s; }
+
+/* ── Responsive ── */
+@media(max-width:760px){
+  header{ grid-template-columns:1fr;padding:48px 24px 40px; }
+  section{ padding:0 24px 60px; }
+  .divider{ padding:0 24px; }
+  footer{ padding:32px 24px; }
+  .hero-panel{ min-width:unset; }
+  .affil-item{ border-right:none;border-bottom:1px solid var(--rule); }
+  .affil-item:last-child{ border-bottom:none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══ HEADER / HERO ══════════════════════════════════════════════════════ -->
+<header>
+  <div class="fade-up">
+    <div class="hero-eyebrow">
+      <span class="pulse"></span>
+      Auracelle AI Governance Labs &nbsp;·&nbsp; Bath Spa University
+    </div>
+    <h1>Auracelle <em>Charlie</em></h1>
+    <span class="hero-version">v6.0 · E-AGPO-HT v3.1 · Doctoral Research Instrument</span>
+    <p class="hero-lead">
+      A structured wargaming instrument for <strong>stress-testing AI governance policy</strong>
+      under adversarial conditions. Currently stress-testing
+      <strong>California SB-53 (2025)</strong> — the first enforceable AI safety law
+      in the United States.
+    </p>
+    <div class="badge-row">
+      <span class="badge badge-teal">Bath Spa University</span>
+      <span class="badge badge-blue">UC Berkeley CLTC</span>
+      <span class="badge badge-amber">NATO STO SAS-219</span>
+      <span class="badge badge-teal">CC BY-NC 4.0</span>
+      <span class="badge badge-red">Pilot: Jun 7–14 2026</span>
+    </div>
+    <div class="cta-row">
+      <a href="https://auracelle.github.io/Auracelle-Charlie-BSU-Research-Workshop-June2026-PolicySB53/" class="btn-primary">
+        ▶ &nbsp;Launch Simulation
+      </a>
+      <a href="#" onclick="openParticipantInstructions();return false;" class="btn-secondary">
+        ↓ &nbsp;Participant Instructions
+      </a>
+      <a href="#" onclick="openQuickReference();return false;" class="btn-secondary">
+        ↓ &nbsp;Quick Reference
+      </a>
+      <a href="https://www.veed.io/view/3f9a3ea5-6a46-4152-a5ca-ebb4a149d8cb?panel=showcase" class="btn-secondary" target="_blank" rel="noopener">
+        ▶ &nbsp;Auracelle Charlie — Explainer Video
+      </a>
+      <a href="https://www.linkedin.com/groups/14692078/" class="btn-secondary" target="_blank">
+        ⌥ &nbsp;Join R&amp;D Collective — Wargaming Theoretic &amp; AI Governance Forum
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-panel fade-up delay-2">
+    <div class="hero-panel-label">Workshop Configuration</div>
+    <div class="config-row">
+      <span class="config-key">Scenario</span>
+      <span class="config-val teal">Frontier AI / SB-53</span>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Focus</span>
+      <span class="config-val">Whistleblower Protections</span>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Info Regime</span>
+      <span class="config-val red">Adversarial</span>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Rounds</span>
+      <span class="config-val">6 (Governance Arc)</span>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Actors</span>
+      <span class="config-val">5 AI Agents</span>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Shocks</span>
+      <span class="config-val amber">R4 + R5 Auto-Fire</span>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Access Code</span>
+      <span class="config-val teal">CHARLIE2026</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ HOW TO USE ══════════════════════════════════════════════════════════ -->
+<div class="divider"><hr></div>
+
+<section>
+  <div class="section-label fade-up">Quick Start</div>
+  <h2 class="fade-up delay-1">Up and running in <em>five steps</em></h2>
+  <div class="steps">
+    <div class="step fade-up delay-1">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Open in Chrome or Firefox</div>
+        <div class="step-text">Click Launch Simulation above or click Launch Simulation above. Do not use Safari or Edge.</div>
+      </div>
+    </div>
+    <div class="step fade-up delay-2">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Log in</div>
+        <div class="step-text">Enter your name, organisation, and access code <strong style="color:var(--teal);">CHARLIE2026</strong>. Select your Sector and Gender Composition.</div>
+      </div>
+    </div>
+    <div class="step fade-up delay-3">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Watch the demo</div>
+        <div class="step-text">The guided demo walks all eleven Charlie tabs automatically. No clicks required — just watch.</div>
+      </div>
+    </div>
+    <div class="step fade-up delay-4">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Play six rounds</div>
+        <div class="step-text">Initialise your session, then log actor moves in Tab ②. The AI guides each actor's position. Red Team shocks fire at Rounds 4 and 5.</div>
+      </div>
+    </div>
+    <div class="step fade-up delay-4">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">Export your data</div>
+        <div class="step-text">Download your session JSON from Tab ②. Email to <strong style="color:#ffffff;">grace-alice.evans@bathspa.ac.uk</strong> within 24 hours.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ELEVEN TABS ═════════════════════════════════════════════════════════ -->
+<div class="divider"><hr></div>
+
+<section>
+  <div class="section-label fade-up">The Simulation</div>
+  <h2 class="fade-up delay-1">Eleven tabs. <em>One instrument.</em></h2>
+  <div class="tab-grid">
+    <div class="tab-card">
+      <span class="tab-num">①</span>
+      <div class="tab-name">Session Design</div>
+      <div class="tab-desc">Configure scenario, validation case, composition group, and information regime.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">②</span>
+      <div class="tab-name">Facilitator Mode</div>
+      <div class="tab-desc">Live negotiation — log actor moves, receive AI guidance, Red Team shocks auto-fire.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">③</span>
+      <div class="tab-name">Governance Indicators</div>
+      <div class="tab-desc">Real-time BGC domain scores and g-GWC General Governance Wargaming Capacity index.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">④</span>
+      <div class="tab-name">Foresight Validation</div>
+      <div class="tab-desc">Kalman filter trajectory vs. historical governance cases including EU AI Act and Bletchley.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">⑤</span>
+      <div class="tab-name">After-Action Review</div>
+      <div class="tab-desc">PSTOA score, RL data download (JSON/CSV), and session archive for dissertation analysis.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">⑥</span>
+      <div class="tab-name">SIPRI Data</div>
+      <div class="tab-desc">Live military expenditure and arms transfer data feeding STI domain scores.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">⑦</span>
+      <div class="tab-name">MARL Engine</div>
+      <div class="tab-desc">Multi-agent reinforcement learning optimisation — theoretical ceiling and optimal strategy.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">⑧</span>
+      <div class="tab-name">Autonomous Sim</div>
+      <div class="tab-desc">Fully AI-driven session with no human input required. Baseline data generation.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">⑨</span>
+      <div class="tab-name">Red Team & Shocks</div>
+      <div class="tab-desc">Nine adversarial shock profiles. Auto-fires at configured rounds in Facilitator Mode.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">⑩</span>
+      <div class="tab-name">Agentic AI</div>
+      <div class="tab-desc">Policy Owner and Red Team agent configuration. Bring your own Anthropic API key.</div>
+    </div>
+    <div class="tab-card">
+      <span class="tab-num">⑪</span>
+      <div class="tab-name">Session Archive</div>
+      <div class="tab-desc">Cross-session PSTOA tracking and bulk export for multi-participant analysis.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BGC DOMAINS ═════════════════════════════════════════════════════════ -->
+<div class="divider"><hr></div>
+
+<section>
+  <div class="section-label fade-up">E-AGPO-HT v3.1</div>
+  <h2 class="fade-up delay-1">Seven <em>governance domains.</em> One score.</h2>
+  <p style="color:var(--ink3);font-size:15px;max-width:640px;margin-bottom:4px;" class="fade-up delay-2">
+    The <strong style="color:#fff;">g-GWC</strong> (General Governance Wargaming Capacity) 
+    aggregates seven Broad Governance Capability domains scored in real time as actor moves 
+    are logged. A Kalman filter tracks trajectory and projects forward three sessions.
+  </p>
+  <div class="bgc-grid">
+    <div class="bgc-card"><span class="bgc-code">STI</span><span class="bgc-name">Strategic Threat Intelligence</span></div>
+    <div class="bgc-card"><span class="bgc-code">SAD</span><span class="bgc-name">Security Architecture Design</span></div>
+    <div class="bgc-card"><span class="bgc-code">ESI</span><span class="bgc-name">Exploratory Simulation Intelligence</span></div>
+    <div class="bgc-card"><span class="bgc-code">NDM</span><span class="bgc-name">Negotiation Dynamics Modeling</span></div>
+    <div class="bgc-card"><span class="bgc-code">SRA</span><span class="bgc-name">Strategic Rationality Assessment</span></div>
+    <div class="bgc-card"><span class="bgc-code">IIC</span><span class="bgc-name">Institutional Implementation Capacity</span></div>
+    <div class="bgc-card"><span class="bgc-code">ASI</span><span class="bgc-name">Adaptive Scalability Intelligence</span></div>
+  </div>
+</section>
+
+<!-- ══ RESEARCH KPIs ════════════════════════════════════════════════════════ -->
+<div class="divider"><hr></div>
+
+<section>
+  <div class="section-label fade-up">Research Design</div>
+  <h2 class="fade-up delay-1">Five <em>research KPIs</em> per session.</h2>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 1</div>
+      <div class="kpi-label">Multilateralism</div>
+      <div class="kpi-desc">Coalition rate across six rounds. Does the whistleblower clause hold a five-actor coalition?</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 2</div>
+      <div class="kpi-label">Stress Test Effectiveness</div>
+      <div class="kpi-desc">g-GWC shift pre/post Red Team shock. Measures policy resilience under adversarial pressure.</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 3</div>
+      <div class="kpi-label">Process Acceleration</div>
+      <div class="kpi-desc">Accel(AGPO) vs. 18-month traditional policy review baseline. Speed advantage of simulation.</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 4</div>
+      <div class="kpi-label">Foresight Sustainability</div>
+      <div class="kpi-desc">Kalman trend direction. Is the governance framework improving or declining across rounds?</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">KPI 5</div>
+      <div class="kpi-label">Weight Sensitivity</div>
+      <div class="kpi-desc">Pareto-optimal BGC configuration from MARL engine. Which domain levers matter most?</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ RESEARCH CONTEXT ════════════════════════════════════════════════════ -->
+<div class="divider"><hr></div>
+
+<section>
+  <div class="section-label fade-up">Research Context</div>
+  <h2 class="fade-up delay-1">Doctoral research at <em>Bath Spa University.</em></h2>
+  <div class="research-box">
+    <p>
+      <strong>Principal Investigator:</strong> Grace-Alice Evans — Founder, Auracelle AI Governance Labs.
+      Doctoral candidate, Bath Spa University (Supervisor: Dr. John Curry). Thesis:
+      <em>Testing Public Policy Outcomes through War Gaming Methodologies for Strengthening AI Governance.</em>
+    </p>
+    <p>
+      <strong>Framework:</strong> E-AGPO-HT v3.1 (Evaluative Agentic Governance Policy Optimisation — Hybrid Taxonomy).
+      Three-stratum latent variable model with SEM fit indices (CFI ≥ 0.95, RMSEA ≤ 0.06).
+      Kalman filter tracks g-GWC across rounds with forward projection and uncertainty bands.
+    </p>
+    <p>
+      <strong>Research Objective 3:</strong> Conduct experimental policy tests using differentiated wargame compositions
+      to assess how participant identity, professional experience, and affiliation shape policy negotiation outcomes.
+      Composition group (Sector × Gender) is the primary independent variable across sessions.
+    </p>
+  </div>
+  <div class="affil-bar" style="margin-top:28px;">
+    <div class="affil-item">
+      <div class="affil-name">Bath Spa University</div>
+      <div class="affil-role">Doctoral Programme · School of Design · Supervisor: Dr. John Curry</div>
+    </div>
+    <div class="affil-item">
+      <div class="affil-name">UC Berkeley CLTC</div>
+      <div class="affil-role">Non-Resident Senior Fellow · Center for Long-Term Cybersecurity</div>
+    </div>
+    <div class="affil-item">
+      <div class="affil-name">NATO STO SAS-219</div>
+      <div class="affil-role">Technical Role Member · R4 · R5 · R7 · WinterStorm 2030</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
+<footer>
+  <div>
+    <div class="footer-brand">Auracelle <em>Charlie</em></div>
+    <div class="footer-sub">v6.0 · E-AGPO-HT v3.1 · CC BY-NC 4.0<br>
+    Bath Spa University · Auracelle AI Governance Labs</div>
+  </div>
+  <div class="footer-links">
+    <a href="https://auracelle.github.io/Auracelle-Charlie-BSU-Research-Workshop-June2026-PolicySB53/">▶ Launch Simulation</a>
+    <a href="#" onclick="openParticipantInstructions();return false;">Participant Instructions (PDF)</a>
+    <a href="#" onclick="openQuickReference();return false;">Quick Reference (PDF)</a>
+    <a href="docs/Auracelle_Charlie_Workshop_Instructions.docx">Workshop Instructions (.docx)</a>
+    <a href="CITATION.cff">Citation (CFF)</a>
+    <a href="LICENSE.md">License (CC BY-NC 4.0)</a>
+    <a href="https://www.linkedin.com/groups/14692078/" target="_blank">R&amp;D Collective — Wargaming &amp; AI Governance Forum</a>
+    <a href="https://auracelle.github.io/Auracelle-AI-Governance-Labs-Platform-Comms-Public">Auracelle Platform</a>
+  </div>
+  <div class="footer-copy">
+    © 2026 Grace-Alice Evans<br>
+    Auracelle AI Governance Labs
+  </div>
+</footer>
+
+</div><!-- /.wrap -->
+
+<!-- PDFs embedded for single-file deployment -->
+<div id="participant-instructions-pdf" data-src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNSAwIFIgL0Y0IDYgMCBSIC9GNSAxMCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0NvbnRlbnRzIDE1IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgMTQgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjUgMCBvYmoKPDwKL0Jhc2VGb250IC9aYXBmRGluZ2JhdHMgL05hbWUgL0YzIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKNiAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1PYmxpcXVlIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GNCAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjcgMCBvYmoKPDwKL0NvbnRlbnRzIDE2IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgMTQgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjggMCBvYmoKPDwKL0NvbnRlbnRzIDE3IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgMTQgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0NvbnRlbnRzIDE4IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgMTQgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjEwIDAgb2JqCjw8Ci9CYXNlRm9udCAvSGVsdmV0aWNhLUJvbGRPYmxpcXVlIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GNSAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjExIDAgb2JqCjw8Ci9Db250ZW50cyAxOSAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDE0IDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iagoxMiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDE0IDAgUiAvVHlwZSAvQ2F0YWxvZwo+PgplbmRvYmoKMTMgMCBvYmoKPDwKL0F1dGhvciAoXChhbm9ueW1vdXNcKSkgL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDYwNTE1MTkxNCswMCcwMCcpIC9DcmVhdG9yIChcKHVuc3BlY2lmaWVkXCkpIC9LZXl3b3JkcyAoKSAvTW9kRGF0ZSAoRDoyMDI2MDYwNTE1MTkxNCswMCcwMCcpIC9Qcm9kdWNlciAoUmVwb3J0TGFiIFBERiBMaWJyYXJ5IC0gXChvcGVuc291cmNlXCkpIAogIC9TdWJqZWN0IChcKHVuc3BlY2lmaWVkXCkpIC9UaXRsZSAoXChhbm9ueW1vdXNcKSkgL1RyYXBwZWQgL0ZhbHNlCj4+CmVuZG9iagoxNCAwIG9iago8PAovQ291bnQgNSAvS2lkcyBbIDQgMCBSIDcgMCBSIDggMCBSIDkgMCBSIDExIDAgUiBdIC9UeXBlIC9QYWdlcwo+PgplbmRvYmoKMTUgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMjY2NQo+PgpzdHJlYW0KR2F1SE1nTiklLiZxMExVb1Y0MUxVJ1kvRl1aSDIpR1VlbjpRODVHPW5kQSxYJmVeJ3U4QlAtOXI+cEoqaCdndElcQCxZSjphIkJqOjNXPG9KL0h1N0EqLzgnLWI6L0RxKSdEWmQhLm4kWlRLLlVWUTk3P24kRGpeQl9oTCU8OzBUPE1aUzVqUThdKT5jbVIhSSIjIjJMOlw+KnNbZEpNJ2c2TWhORjZbJyNFXmxmLVZzZyUkJ1I6a0YtYj1NUk8/VFZRPCZtYj06KSY8Q25aOyNpXW0zQ1RPJCJybDZRYzFtWDZSQHFxVzdTOV9wdCtEYzEoPGQpWlFXJysqb3I6RjFSdClcO248WW8uP1JBQE4zNSJAOidzaCRzQDZRISFATyFnVUFERE1xUyk7aSIuSExiUk82UjE1cHJmaHRGIjBtcCs2I08jLE4tV0FcVl9aT01AWU1kQTNfSjpfTTtOMWpPRUNiazw9Xk5NSEpHaS4nP3BQLWtdYSErNF0/LVtcZDhqU01oQV81a108MGQpQ2poSFxAPiY4JW1GKXJ0P2lRQEBeKnIpJEE3WC1tZjFqWEVyQSVDTiM4TjBkTGswKDkhLlAkclpxalhBOCduImI9OFJNWDRbdDhuN2hlKDNQXlU3WkQjQGtJNC5QPDZtLDheY1lISktDVG5MIzcyJWRFa1dTJWwvcDdROUBXbD9OMlAzVz09YHIoTTw5VVQ8QTBqZW8tVVdeJEUrcW1ISDw5VFFALDdTQTZbanJWNj1JMVFpPVtnIVtiPWxKJitCOXFpZ0s+OGNgRkk0LjxBLkEvcD5lOWZHaWxJdVdIJygiUmRcdChFXmhsYWQxOjJyRlg3MVhsZmJ0PjkzTDQwJUlMU2hsNExILWEqbzRBLC1aJUUtMS5TbE1qIVZsWEwoaWNuXEtQOXQoM010ZCgkSGUjPVkvYkFjX2wuQ0JJKWNhUGo6JChIbyZAdHFlaWA8YHMxO0pZRS1oMidMZEwmTVIiL3JAalsqaCdiQDlJTTRBSSk8Sm0+ZG9nOjVoayJkbUtVPSEtQDFUSzdCa2o8XUtEYWYuL24wZSJNJXBmaCpnNWFMJnByLytRYGttOC0jamM8bG10J2s4VTUiX1xIQDBaXSsqbFF0N3AqVWBjYGk6azdeOiRaMCVLaU9TQVRzIiQ9N05JSFFpNlBdRl1rQ101W2YuW0g/cXI8NmdPQXBbJDdJPz5XcSFaX1RRaV1ITGEvKzV0K05yUztlLU1qZGovUlxKVExjO2RuOyI/MDZBaEpsQCpILSZAcUMsKG8saDkiWy4xVGwiZTxCUWFgIzk8SWJQN0o8WSs6czhpSUUlT2oxMG0wPl1hXixDazQvRF5OZDpaQ2tOPVNiMmZxc1xxOm9MNSlPYEIhJWFlU1U8ZmFwODtFYGZeJiVRJz9UaShLZl5rXDlMZCZQVitHJCtlVWtRYitnSUdpZV1qXSFkQz40bU4uKVhfdCJJTFhtYTA4YHFqTWpXKElTIidZRm8sPm5gXjBRa2VET2VkT0dlaVpcUTVAO2clbS1uLFs+SU48Mi9KImlfIjNfXGU8MmQsU0xCbiNYNmMjZi9RLlcvLkY0a2EuKltBVldFN00nOTNrVmZHUWIxWGRzUSI1UHNIJnFdPSVvJCZEUChDa1EjNHBscmppPE5kZzlsO3QiQzdHI1RxQFdldCFGTUpCUy9PPihqKFFUVU5IUSJROS8jXEJZQ0Y8VCt0bEkqPjpZWkYraGNKVyNzX2lWdC89dEtGTmAhOXRWaSJILmFUQ1M4JSYmVD0wSDhsay4sLCVqP2orVlVZYihjXCNXQiEoYHFkW3RpKCJmYVYpQTxpPWQzXlxNLUUoJSY9QUhaMk1kL0Q7NGxYMC5kT20jTS9MayM0PChNI09AO2NyJENLbydVRXErSypKTjpdPEBeKCtYUF9faGxXV2JwZ10qLDg6RWpEJkUxcTtvOFU0YVU8RmdSYUJeciQ5c1BzKkNCWjlXLlYnU0xma0QndDNSNE5nLHJAJVRIOXEnJmc3IW40O2FNSVtvPUgxS0kwLTw7OCM0P01oWlt1JWs4Uy1BU0dPWjZLSDphVyc+UFdIKkJtP25gODY+NlY1SHFqTmJOSlRKUltnNWokZG5mWCVkSnUxMkBSQz9cPmY4KmY9cFglTVJGPC1Aai8kJEdJU2xKLiFoM1BiPiw8RlpUaSJQVmcuXCNPNyNkdClJOElZSypCYHUoJmFMXTlCJXErPFhDNWcyQiZqaSRDLilDWFcnVz8/MDgvUnRJO19OQEouO01qXlZAXlUnPUpTOnBDZCEqMl1gOF9hKjZGIjJdWl9tLFlkNGMqM0RuUnBUPidgOlcycU43RSZdKDgoT1QoKTk5YEdPY3ApTDNibztCXnN1KllLIk0yQEZmWkQmciIzWF82cVhvQHBXUyRoUlUycGNJMzZnO1ouIlM2MUI6OUsmK0gqVVNOMGUrZlIlMlEtQSlqaWQzYkIrZTBLP2FUOl4pb2lpcW9QSEBEZmBIV1dwZiRxZmNsW2A9LFlnOE5ZYkw1anA3Mj5bQVZrM3A3WTxcRWBFJi5JODxoMz5ARmQqZDJmIyttLD4+SFRnOzU6a3V1clU2ckxSOz9XaFlwNk9SPiFhTVxXNC5VcztlLig7cSZvTiYvbDhaRD4lUGtrJDpMVidEK0tkQGk3ZDoyPCg7ZSM/LGRxbUcpOjo2VjFxUUInVDVrVVB0PEljbm8zZ3FwPi5FVyo2JGUjS2A0azU4ZUA1RVY2NzxdNmVjYkAiUldKTm9ZSTFGX2QqZmRyT05uX2VZXCRsLlBoKVZaX25UIlBzPj1ePXVpPFRHJV9EJDI5Lz1Bcj8qcSxLJWVYIztOJDVZXHIsX1Ziaz1VT2hAOSdOUTY8WCwoRiJlTnFcQjIzZCg6bF9wbmNNM2BxKkg7RlNVIkRURUxSOy9FMFdba2xwb0hVW25DJ1ZiO1xtWFFCbWY4ZSJeV1pjbCRtYUczNkIucFtjbkYtNE1pNiVINlA9XmY8L25oJmZINTZici4pYi4kSHAkK1ZQaXMraGRXRT8mM0ViZDYkciZLO0BrWTImaz5zXSE5Kj1FZFEpVyFmNlByJDpXW1ZtS1ZSJm5sa2giTWReRmo7MGldUk9TQT9kIUsjXi06YXBUZkM7VVNxUWtEVyxiZiNGSUVSPEBCLExwYFpLRks5SCJtOnBFWFc5XnJzV18tWHIrQmEjUXRVQjo0XTtmKHUrMzUjTERdXyJoMWRjRi5pPE9bUSs3QjArO1xCJG9rMy8uKXRCWz0kUTc3NjowP3BfJ2hDUjZHdDIhTDUmMiJqY2wrVVVJITA1Wzg2OCRnajs8W1YtQzRZNkJTc0RyLlpzXXQ4SkBsVllwdVk0bz5LQ0FaXTxML3BpPl5NXk9aayxQPEhEZjlFTXFKIU9nQ2pNZHNSVS5pOlJpU3VLVmw8a0VDM0lvRipUck8qbDJMKGg1T2tZPERRUSxRYE0zRCVlMV47I1wqajhlZUdbUV5vNHU0WFw3aGVIcnJLaSMlNSV+PmVuZHN0cmVhbQplbmRvYmoKMTYgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMTM1Ngo+PgpzdHJlYW0KR2F1YFNnTVolMCY6TWwrYmJNYV8nVSQlUmhuMl5TVlRAbyJgTSxWSiJZSjFdXTk7QlMsXFIpTSpFJHBQPUFCZERLYVMha15yc3JpMVJCPWIrU19aKDQzW2RpLSNiVzo1VChoJ1RZQl9aRVg/QyNkPnQmRy1aVDxxMi8oVElUKzQxI0tCcFEkTVpSak0uLmVfa0g+WUBeZXA/OCw3cExlZ0VjPTU0QyciJyUlVVRSUiciWD1YKUJNdXRfNVUkV1YwTjhoVShnazFNZTtlSWlaanRxR1oiR0lrSm9zIT1XQ15TTkEiJlFZKitfJWpZKV9uJC08RFNWc0RoJz8wOERiajgiR1UiZ0g7Qj5FI1Y4MG8xNjo3Ti02cipWYmpnK2gzL1wib1xMPDcibVc8YCIzSiVObTMxbDBgLGZXWEcmITE5LTFBIVlwXGZwL29aSCtgcjxVPVFuLl5gR0s7K2crSC9ZdWdiPU9vLGYrJWRbVSpSJEo+TUY+Yl5iRGVVZHBBOGF0VDRsR0VYSThGTWxnUEdNLG1ILS4qW0ErYldyQU5JKTsiIVMuSCRgXVxZQjRtR0o+SGAqR0UtbzBZTWxfUSMmPXBTNFs/IiRWIkBMQU5sSy5MPVNkITM9XTY6InVqW0t0X2lTY2xcMSFdPiw2VSImZjwydFsicGRaXnJmaC9hSkc+O21OLStJPk4mTT1RTSsoS1BqMCZXIzFAXW1wYjUzJkVITUQ1KyQiSk1eZ2lbLj40TURubiZtUUUxaTdDWDUpWz40WV4oUko4W0RFMUtTam1EYCY3JEpcKDhCMjksSGEsc0xBL1tXWSgtazBbY2BEJDQ1PEZmbVNhN3FJP2Qtb3BgaSYxUWRQcFlqRywnZmhZIk1JWTI6cGwlMGtNZnReb3JwaUNZVmxgblIqMmVgXVRUY1s7YGBnb1ZRXE4jKDEyRnByNz84PyRYJFlEcj1FZGVaNyU1K2VKOjc7MENpXE9lakArciJIT1FJS09MPSxaQGwxT0c5Z1ZoZ1tPWSVpZiJIYl4nIWwtUCVTbW9SX0taLDg/NCovZ0wwSyhPY2diWjFJSlUzU3I3Ji0xbFBESjwyYDVWSiskUjsrUWpMKTs2UyxJOC88VVNeZWtGKVhPOGxlSEcvOlFPX0IpVSojJy1oXDxfTipNJVZEOThsKkQ/KltPRlA1Uzc2Z1kjXzpTQj1HJzxcLkU6QCdLOUwvLSI5JUVzJ0VXX0oyXFssJXUxYE9gcjpIIkBnPGdUWUk4N0BBXiJxKDEtUUdgSEE/c3MlRTg/Pl5hTWVjTlY9Jj44ZmVmV2ttZWEiKVZgWmc7MUZXKlBHVEM0MUIkKHFkOlhAbjJ1SWdxO2AtMzhPITc1Vkg3ZVlFY1NoWTMpXWo6dV1gYXA8Si0wOi1ONiMtWktTaVFzaWNCP00uO1gkbWlrW1BXY09ZNG9nRXRBS0U4MmRmWjw/ZVFbRG8wOkpBJlU8XSVxcGFTQnNfaTouNlZwNCt1YWFhMElpZyZbSWVhOmJRRiQ/PkQ5NEdeRV1SS1poOlo7aWBtVmxWXF8jKjJmO1hbdGhUJWVEZSFGSyxGJ2tfJkQvKlJXKUJbSmxjJW5vMks+LWlpIV5gSClKOzRdVTlCXmpcTzcnL3VHSidDYz1fMkJYQHVoWiwoXkpSZHFzc2snIjhLJ0BTIkBNO1VDWSRcY1BgX2AnMSooIzBcNWk0bTdqPzorYUFxLzRSJyJXbXJucyMrV2xjb0cvNztVXT5MTWdqMSgtTjxiTlhLWWg9b2owXT8nPS0iLzM7TyI0bm43ZX4+ZW5kc3RyZWFtCmVuZG9iagoxNyAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAyODkwCj4+CnN0cmVhbQpHYXVgVT5CQTk3JnE4MDFrWFZzSkteUCN0QV1rM0NxJVNLdUBMZmVHSCd1X2VIVSptVSxVX1sxVDxEbFFxJycyKiZHP2VBJmk2PElUISdmcj9lWl9DSWlTRSoxKl8qLFUsVjZGM0EtPFphUkxqUzdOXm1ua2lCY1U0VkxzITpcRiRuYkJOZlYqTCNVKlRjNC9HIl09SlIlTV1aVl5vO01nSS5EKnNgRl5wa11iVCheWTMxRE5BRW1KOlY1YlUkYFhPLz1RUj5kPkxtNSZRLjdLQG1jMSdpYTpPN0xEWkxUbCQzI3UrNW5FZmJjcT0qNTtNcFpNNW5KLiV0ZEhEKkFCMnRobD5IWyxuLyE7Uik3JD4kYnIsOCpAPFFFYiRAX2RMa1g3JixGJ1UlIi1ncWBCQjUjSSZnPzReJUNxZkt0NktxdT1GOjJJVXIzTyZlN2YmNChqRkgkUSIzNEBOP2Frb0BYKj9ZNj5oNCxZcGozVCMkJSxyKkg9S1xwW1xvaGk7bkBVYyphVU5NZ2NmUWYiKFdMUE8zdVYmJDdJPjI+PUA5UypVPVprQCRLMzB1XUgsWFFwa0U6YkdZJVFsYSw+KzZHPEM7SExvJ2prbydCK0coNGMwNz9QSEpeWjtjKj0uXGktOS0qPkleRilWI0gpcV8wXj1sNj45MnNePjdMPF9dZnJOSz50OF9zbD4obF1PR0s+bXUsKEtkQm8pZGxkU1ErOjQlQ1VOaykmLFhSTVtdIWBpVTpbaiwjQD0+SXFGOSFtSTlfT0JFXkpWX0hcVEY5SjMvZU9YPzoiSWxhbytjb3RGMTRga1lLOFdvUTVuNi45Mzc1KU1kYHBfdGFrT2lUQUVGPmFrJldhcEk4SEpOQU03azFmIWpkViJQLnVbNihMMmtkV2tkaVw9NCdBUlRCJGs6TGtiZ0tnZHJAc1JPOj0lW0dwLHRJYFtTbnUiKWNXOUhebiQjPS1RQklMLz4oTkVxXFsiXD9DTiZwMXB1biEkVGQtW3M/SShuKzZfUTZoXWhFI1cqLl5FJW5hL19STmIsXUNnYmVxTEpVdXIrciNiVC0yRko0bF5DK3A1ZSZjMzNdLnNHTlBOZjpMWl5oKlJhPkhsZ19jV0pyL0kjXEs8ZytALDVsXmolXXRBWSVQO2toWVkmMz8tJlJgSF1KLW1TXElvQThRRFFZOShWLFVnaksvJmokcz8lQkxmJ1k9UjU6XEdGY2ZLJ0lxLTQzIm1jJ0tOQ1pTLWJkJXNGazI4PChPOSUxPWpVUGlAZC1RY1U5JzYiNSNobnBXVWZxOENkJTVIL1klJ2QpRydIN2M8UENvZGUyQURebloxOFNGa0lSckhMT1RZXm1obVxkZFJsQytMals2dGA3TG04cFwpM1sxMi1LQDBMJjMsJFo3ZVFsS2w5JTU5RW9OXixbREkyXz5fQCxUL2xyM0Y+W28tY05KZUs3U1RBaiVTcEEwNzEhajtSIlBjJ0khSUQ1WSxQNnFLUCFUWj0vVDY5KHE7Y1FrdF1NN3UmNykzQXI9IkhKW2IuVkpEMEI7V2RsNmwhUShuNlw5MkFfKFc8QEphIyt0PCdxR0AkXmptbFhISC5UKDhMPFApN2g7M18nay0mKjlvUltGR2tPcVRdN0E7UT5uQjNBW3RBZSdAWExVdUBHIVlXQSFjWFRuZE46OVgmVmpdJyFROEheVzdPR0UvZidePCFtc2NBRVgqZkpdQmkkKDFdX3MtT3EtZVFXJFRaPFpBVzIjYyRgUk1zYW9iNXQ3P2s8YjphQ3AtOU9mcVVGN3VxblAvZWooayU0Uy9oZXNtLj0tSnVsRlRSZUI8bTlwSFVUNG5RXD8tayxpYlZYMzJaMC9wWzJ1ZzM7MSEwKD88UGgmRHU2LEFcb28oXm01UEheRnJddHFHXm05Ol5LX2QxKEMvLWttVyxHYVhFQyZLRWpbT15ENWlHKyldZWItTi02KHRhXDsjMUcjUzhwKjdqQm8qYGM/cXByOEBcQUZWZEphImlZPVo0SVJiPnUzT0liPHApRT03JThiTCsxV1FiXWJSQkJrKWFvIUdGcXMlUSplUG9dOkIlQzA1MjE9Tl44UktiO2ZWS0N1XTYnWmpvRWNWKCw1cnJcZEBoTj8+RT1VOUI1N2FPVEdVZzsiWSk0bTxrcTNLTzNGQyskUEw7K2paUScyIlxiWz03LS5UPWBuQ2I0YF5zJDY/QkI9WmNdSCY4SjUvMVhrUnJaViskWG1UNlheMF1DLy4wS3Q2W0ZFLEM+R2w3LDVoQ14kUWlSQyoqT3BIMyRKKjI1ZylaXEYzWFozZ1ZpPUhxY2E4YmxBTSNaSV5DdXQkJmk3KWw/L3RDQ2NjNVdFcGcrWihmJC1aVy1aVGBBRjpfVFBVUCJuX1Y1KiZUaVckWmZqOFxFY1NdYXRwO1E1LHJcJ0RmajpAT2NTTnBqX0ouZ0onbzcuR0ZvLycjLF0ybzxBdUcnJGJEZ1hhYmxqIjdldTM0Pk9QJiRobVpwTGE0JyIyITUnMz5WdTxSMCdAQDUzOmciLEtIUFEsKzBAbVRKVEE/KGlvYUcoK1xMLUtnYj00WUVAZkdMITtEPUgkb3QuUVQ9cHRWbiRlRGs5JlNTZy0jJilBczJmXitfLioqaT9XZks6dSw5RGElKyohYF1ATlU7cTBdZl0xOmo9P15NZWpAPnVpXWtNSWY4UVlnbmZGcC9DVCEuLFk/VklCM1xURiUxcWMlJ15JcVFLdGFqaF9TPFVKLEFWIzZoOFlHODZbPGhLRjF0JVVqblU/SUhsQSFhaVIrMm05Oy9eQTlgVFc0NC5dMl9jZiI5ZGtBTUBQWj1mSi1vU2JNSCFhXltgRkZHLi9tJkFXcFU7WSYpIkM8V2pUWC5OcDYkKWMxJFBvXDZgMlEka2VPQGtIYUU/PmsxUz5ORHEtJGw7RDoqTEdWO3RiOC9wXSdjRCMxP2A1XVNvY3UyNV9KTCw1Wmk7QTZVKmtQN09dT01cXycrVnRXUUpxMFBQcyN0a3RHL0klLT5KNT8nITVnPGpaXldLLjs6cWVFNXROXDZXJktdQllodD47WEU3MF5MZCY1V3IrSj5dOm5NYUZbb1oiO0FzSTtYKj1kK1tRJz5XIWElTF0rcTBsKkheXHEzXmQ7RENwWVN0YzxBcj9ZPyhoJlFfSWVrcSxMdCwmbjEoRE1qdCE8NmkmRFcrbS1mSHEvM2koNTQjQmhsP0MzO0JeW1lSZnNWdEhHJVI3PW8vLjxKaEo0KXNndDxmKV4/Nm5yLG8yYWhUWkhiZGxyOHBjLUBdJiNxNTQ/aGxsWC0lKWBUYmVoODRMRTFNNnIpPTVYak0kWjc5TC89Sm80RkAjckRaUSlDQlYpX2Y5QURyKlVKa1I4XHA/aFoiS2cvX0otKF5EX1UvJytMO1FCRlZnYG1OZzI+X0wqIWMrZlJJJlBfMkZTcj5AZ1kmTF5ob1MncWQjSzZsQGFiPWdrJzhOVl1KPSchY1hAKjNsQGFLZjVZIl9yVzE7dU06IzcqdTlDNmZmYlkkXXJpSGQxYFFeOFNScGAxci5kLDRJIjZRMFFuZFkuMFM5PW9KR3AiP2BNZCtPNVlvLlFNKE9kNV5ecDkxS2JOWFBBIjtTSyU2YDlITWVBNl5qRzNTXls0VCInKD0mX2sxMjJvXl07TUJkcktrKzRWalRFa0lnJ19sJCw4V0kmUEhgYFYlb3E+VktZLFNzTE0jdCxRNXFSJ11vbSMoaFNlZihyT1thbTBNP2NvOUg/X2UqTDBYUFgxWFtcU1I6UidTQT5KVVU8Q1UuJjUoU2lOQDcqVE1qRj5tTCNHcX4+ZW5kc3RyZWFtCmVuZG9iagoxOCAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAyNjc3Cj4+CnN0cmVhbQpHYXVgVGdOKSU8JnEvQTVvSFE7K05BLmswPEVtKSI5VnBoNjozcDNGOWNjZF5PRyY7cSIrWGpKWU1cY2FRL0dCIj1dckBNXl1WZVNwR3EnLUhiX3FiXktnYSc3Zlg+TTM0bjFjRlZtaSdTJzZRNSUxR11SSiIyYSEqK21TQ1k4aDElcE1BKFhCIkdHPT1NUUsuMkI8OmxQVT5tP0Zpc25UQGxjNFg2MTcvJDFEbkNASSNXYltSOlxiIUsmOlwpSl45MUYtYElDMThTMWtycmk/cmNcMz5cYVgsKylYbkZMQGQnbl9rSUc/PENnI0J1cy9ybG1aOG9HcENjT1pEZWwlP3AlMkRSRlk6JjVybUlsaCpkP1goQSY7M206IzBFMFBWcGtEZyJxRiosVXQ1Xj0nbU1rMSo8QiM2IlFVXzUiPVNTMmJsX0lFYkBWU0xZcmtjLTYoIVM8NSVoYE0tblZZMEA7PjMxSExdPSVhYVtUalY3QCFdWj8zXWU2LkdnPEk2Y3R1dDdjdEgiUixGTFNWKks/Yio8TilJc0xEPkpaJi5PXVJAJ2U5aFZIS0BDWiwmPE8qZDlPUERFLDdQa0QiI3VVInQnSjVOYlYsX15cZmJPTkIkXU9yMjFfKE1pWmpoTiZacm43TlQ3IUgzaWolPy8uKjoxN0VPQylSa28lQzokR20paiErbGMlIyhjQVdmSCYtX1NKUVddPSFnKyIlXGk9RVYlVlFTVF5PWmhLczcyPTQ/MkYvMi0pckEwO1JjM01wJS5zQ1s+Yy4iVC9FL0Q6ME1OWmNUSlRNIVZ0V1s/XEpkOUhaIXJWNEFlYV5IPnM4OnNuN2dlKyQydT1KKVRaTFdIRllaX0AmLmVcWzVQXDhRJCNrJEAzY1NsXVo4RldcRG9qK1sxLm9OKlQjUXM7dHIsXF5IOm9cISJXY1RNMCtGaD50V0VnI1VQLEgsZ0pnaUItOidOPFktUlwmbG4vTS0wMicjL2tOM0hUME9PXzpIKDdVLkZOMj43Y2RuRDxKMWFKMGMyTzdVRUc+PigxZDpSWmI6NDM9b1YiLS9yMEpbYDlWa0kmVjQrSyNtRUA5U2pTYVosVkBHJT1pUTclYDx0cUpaLT9kRFhIMi0vJGhYVkBbYW0xWmUlK1I+PilYXSdNYyxNY3BGN21EbVVrPGFhWEMnNVdXQ1wuSEgtOmY2ajk5LEZUW25eUFJOSFg2IVExRz5jNmRgWWxpL0xXSygzKFFSaGAqTE0tQnNlbU1aRUA1KkwqJj9bQyFvbC0/LD9fMy0vbjBPOHQlZmNLZEtmIzgsLUBFN0hmaidMXE5haFhuaWE/VzZiRihvPTVmLGwiLTk5WFZoMT5WKjhmbGNFOEguSGUob2ZScUlFTWlQZClCTl0wZUVkUmY+UUFaRUshUWZRcFBOVk4yZyI1ZDZtcUk4dEJhc29UT0MwL00iUW5uLCFESTkpOVE9KnRzPTxLWUBJXzVHKW8lQVFdMShVciEuTjY1Wl5XWFc1ZD83XlY8Q2lvL1YoYSVmZSVRNTpNJSk5XFEpJTlpJTo0TzB0TGl1LklvLD9EaVs2RG0jQVddWzs+ME83YFAmYUspWWtwLzVROG5sI1VeKCVCZT5TVW9lLkNYbCMtPFcrR0AzZTorbUVtayFmai06JSdcRHNxMk8vIkE8bGQxMEdFXXI0RV9iL2dtP0dEL0xQak8vLXM4IUByUEVJQUIsSiEyS0hQblgvbjYyQUoiVjFRZk9ZbyxCc08sVyteWUVMMTVOdW1QLzBNS2pdRHBsb2FERHNzJVY4Uk9dOWs/L2MnUEQpOm8tXSlPYCZEZWpTXi9VTUptM0tTZmNJcmZDUVhpdWdtKEdUZVAvKSJEbmxANVBaZ19UNUJ1V2lLOjFRcG04aD9SbUozcVBNUGovVjgxJHIhTkM9KCZOZjVTMUx1Lj1SW242P2E8ZmkwNEpqZSxBdTMhTGJPbWZhOSJ1cCRBS0BwUUVgbGJeKkcsTEtgPjVLcCooczlDbTplV2Q5KVQ9WChRQDprT1wnPG0jOl9ePUIlXk9vOThCc1ZPbl9BUTdJdEQ/am8pXnJpYyxeam1xcGs9Ql9vbW51cVFFUWdzdSxoV2hvNU1UZTNmaXFYQDtMKkMhI0Enb3NyIigpaEsiQzlMRDpaLmdbKU1pJjchYkUnYT43b1VbWXNOR0YwPyFbc2poWCY/WE5oZExnUEBXaUBaZVdTRiVEaGU9NSlZPSVfYjYhJUcrdSwqPGg+LEQpXjBSQy4tbFhSKitEREdtbVk0VjlGJlFcKjEtY0MuRCteYSRucSRUWVY7MGIxTiVMRV9zZGBxLl9QVkJzUi9rM1I5M0VZI0gqcl43JkE2aEJeL0k0Yy4+azlxMEZjVmc9JU8taHVzQy9BNkFHZUI4WXMsPDhlJk5OVFwtWCFuPG5HS1NYLi1yQkE8UE4tcTVuIVhPIjQtcWNfKklEaydcOzNmJjwsJzx0cyZ1P1hLbmBaZExuUzs8UUdSJF9AQl9OcDBQZyJjMEU1bURbMV08V09cI2lMU1U5Uy9fdDRJWDE3MWI+JypUcWY7dE1EciJVMDErU2A/PG83YDVfbGtuKUVUSD9YKj0sY0wwPV1uYE5fTFxwJmchLWZHRSpVI3I5XGVTckpLdWBoSS5abzZgL3VdWmtXZzFAaGAiKiJRXVhwNlJpTjlnQl1bW0dZRFJKTHIiUERZSmg8LyJtWjQpSz5OKFJyPVZHVixeLThyZ1ZxOktQTU1gWi9KY0dBVWpzNW5XTEk9Sl91ImcjQCxFVzdMWyw4I1lccGw1ZjlpV0JdSTFSV2lmZGgkOHBoRD5gWDhWYTYpUT5KM2dxdWZmSy5SOjtZbztUazoickdxKDpiTDxALEM4WHU6Xi91N0QmW2kkMTp0cyorZmA5NU48Vy9gTG9OXGZyPylyPyVfOFRgX2xkbUstSExvSTxRbGVnKGhwZmxOSiVSWWRaLUhCKFU+Pm04JF9WQnBmITQhK1k/ZzY2aW9JWzZeVEU5ZyoqYDBaNjQwMDpLZl1BNS9icTtfcCxDXkMlQyswQy0rLTVxbkFUUC81OSJTYVgpLSMrUm1VXzg/bFVGX2tyUSVWRXBmc0tCW0onZSZsTDxeOm1RNEs3bTJqN3FtWFNLZChlV2xSWVhQSFFQN2syZjpncGMhWWVMXlpnZGhlPTtNaDUjY1IqajRFQGdXJl5ncyItdCUubDppMS1HUnU0LW5EUE5LYmNcdGMmMCZOYklRTDFAUjZ1akgtOjBgM18rPEwoWU5RKV5PZU5xayYsODhzKUkvOjRaaU5cXSFwSitlMyMsKHFBV2VDJjh0LWBRNlgxVi8hdU02azMxJ2lfVF1CcVQncj1Lb3FMUGk8cVdjaFZlaCFMPkxydSVwSUVubChOLSVDQmIiZUFtZisqZFRbIVFWKmhRIS9jUm5qOUlINXVEPkVTYyM2MmYkbTlUYzBqK0g1b11ib2YxZjBqKjJdRkxATVxqMjRJPWJDLztsIk5EcWlyTlMjOi4+czBWKFdbSFBeXjJXWC1QMztjY34+ZW5kc3RyZWFtCmVuZG9iagoxOSAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAyNTYwCj4+CnN0cmVhbQpHYiIvKT5CQVEtJnE5U1lmVSYxLD5GUGVAQjNvbWhnSVtzNVtVXFBxa0tJV14/amAnWU9HI3JQPHJERXUhJidMKE03USlyU2lSYVcmLiVWVF4wTjtgSzBrLkk1QUwyOy5EUlNdcHVzQDZDO1hdZGU/ck51ST1SZzdmcEImQTlqaThDPEUvXXMvcmI1a0smcWEkKkkodDtKYVdkV251ODNHQ1slRHUlXkJnYVFHVlByVkloTlAxXGFgbVNwPVdKb2BCV3NJSzd0VDxcZTpvNFMiKjE0SiNSLyYlP0s4aypdZiIzUDt1NlsmVkVQcW4nPkhmL0lvS2dXTCxiX3JxYm1JYUk1WWw/JDpTRyYyKGNvKWtKJm41YjluYC0hcnRJMCdGRSNuX25uckZpaC9kXTM+alIyJlQ0NWQySTE5NzIsQVkhWkwuaEAsMW9PVFFZRWlCZkpEJVsvIVtMbGtXcEBBIm5OPi5Yc0g7MXBTTldPMiJUIztwZ1ZEJk1rN0tUO19EJFVZa1BibW5sSjIrSjMzOEdyLDIjM20lbkpYLz1rQSZdNHFhPi9OKjtbY1JMTURGQTYvI1lZN2wxSE8+J0dnSWhJdGloOCdJWkckKVxLXS00TUVWXSY0alZIPyRtdFFtKWxXKUg0PmptcCkrSmpaOSp1S0JzZTo5TDcyLTtBZWQ2QTorcV5PQjxLaGZNNEIvR2NqZDgoYSpcOidKVW8xSiFFMHUjQi5TcyROK0wuIkckW21AMDY7UlA5TG4mJWpLZCJMcGFtRWU2USQ4dE51TCVfIlxSaGs+Zk88KiRDSi8pTS0udSlWRChLaSUhQmo6M0ErZkpeZE1cJDJ0Oi81Ulc5RERWP15BM2JHQUAkUmQzSjBPM25gbV8rJlBlMiQ0RSxBY04kLDI4RylTTUBtSz5eQ0ElbE1HJ0JlWS5bQ1JSXjwhQkxJZVVhYDg5R25Ka19hXmJcQVk3ImJOTVU7Ji5EU1EnY1lxQGpxOUtFNFprQmtdakBFVCpWaU9LQGdJVVl0QkoxJF1IOD4kXUg/cm4+QVosR2BJbiNRUmRXYCNPJms0ZVVlQSxbXlddST8+W3NTUkEiWVY4Yz05c2lUVTdSTC0iOGkhMlYrQ1RJaWpURnBsJl8tUEkqLDViU2JFaV4zMCVKTGplUDtoIVRrNTRZVWdxaWhZbShPXzBEcUIxXDlIX1gkXVo6PWAhNDQiU2NVKEInXiUicjdVYUlqKU8+OCdhJS4iOD08Ijg4T3MkUV51PTJIXz8tU19kLDBuUlQ6XDc+TlhXXj41OFtPc05HL1d1bWJwRzo2VClUJlVnZSpRVWc7O0BDak48b0hQWmRxKCFca0IhJmwqUE9YdTEiUiVJbkxQOyRBMVReaypPVDwzUj5kLDBFXWJaXU9WcWRaL05zOSFOQ3NdJUcncS4lQjJCM3JRS1JwUUQmcklvTnQ7M15GMD0sS2JwKF9kMzFTK2NGKSldRjhvcEM4XXRXajNyTzBDIicsKE9jVTJVcGUzTmZwO0pjbCJSOlVZXlpUI2Q6Qj5ALTA8YUM2a25ib2VgOG5oSmBSVWQiLmMzRW9sSUImc1l0NjElIzIqZGJjQSpPZUBaRjJzLS9kY1gySzRsJS49YVhgZSlBUlk6QkNZbTxIX0lNLENHK0J1Lz80NThJRidTcCpYQF1fOiQ7QD4qUjo3TTRuKm9QP25nc1xrMEtDbENBc0hDTkFRSURHWGM6TEQ0S11LcU9yJ01IMTUuNmJjJWtzTVFjaEI2Km1aU1JAb3VdJjJFQ1JySVFqPCpOb3UwN1hdQWguY10+aktGbk9rW09xcyxFNzliREBGYV4lPl0iMmJFPy4yR1Fvb1lNOmMyMTYsRm03S0xsWlYlTzAkITokZHVScWJGQ1ZaQW9wLnFXN1JnPnAnITU+SDQwSWh0Y19nR0hOUTFnOUtlQm9yWl1RaztmNGpGXUQkYSo9LSs2M3UxZG0ydV5QSiVvIWhxTmlaOiJxZicnW09mW1pNWl5nWEwtOTssaT03WUxPZz5HL14hR0BTJEEuIWBbaUcjXSpJZUAuZDhsOWQ7SUw4MkBpcUFRJC40QS0/ME5aOXRFLkctKFRIWDhUOmFLVEo0ZC1yVFhqQG0qNmYwJTRqJVE5PmpwTzZEWy1hLiRvT2hpLGhDNFBOWCk8cXRhYideJFMhJ01tXjFARTtHL2haWyJNaUpwamdoMEEuMEo4JmcpRj5SNU0qbGYhOHBQOiFWPitbLChKNERLSj1ZKiNsPjxqYVtyI0NYWyI9a1NsZE0+OiUmXFRIPT1JIUlmJSdGMW46Ql4sNDktJCc+S0tuPVk2PTFbO28yUC9JYGtoImNaU3VSOkQiaHRtQmYsaConRVpGPyI7I3IzaEVlRUVfTGFsMThRYjsuZXNDI1Y4cUYoQihNcjc7Xzs/NjZmPVZbRFQlLW5lRztMQUtIPW49bTQxK21wa2VFOzY3LSNmZjciLGE2cDlgPVtaZiJHYStiPyFrW3RLNmhyODlLTkRXTDdURHMwXD1NIzx0QSRCTzxWQHR1OWliKVolRkNaPTFxSGFrOltPREpiLGBXYFVRI3AidSFkREZzTVpOVl1QKDhuJGJGM0lEQSckI1NvRk9RJlAnVCckQz42PFc6X2MuJ1ZcO2VKRyNoL09lP0N1YCYzaEVwbTw0NEJMWi1AbmwnIzNdbyROR11kcTM2ZChDcEEjREhYSHN1SW9KRCpcWWFaNWNbbWdDXHBDSUhnP1UnIis1WW82UV1yWio2T05qNENQWS5xUnMrK1FfK14vPyVxUTIzS1FXbi1pazc2aSxrMmArSmJvYydwaCIuQXFkPW1URD5IRj9pPGw/bDwmMFo6L0czIzBhaWcxMzRGZWJnW0dCODlEIXNaUmdKSnVbXUo8aDFrdENtPi9ubShBaVttbUVHMilJO2E2UnAnOktQUWJqbk41XzJIWC1yMD9MWllPRFJWXkRsJWMpZVFRLUohdW5wYGhPKWtFcXU9TC9LP0c7UCVzNjo+S0M2NGRqaSdVM10hazFCJFQnMy05cm86UkxnIycvPlZxTk9xLURsIVVjIydzZGooKDZcLExRYkg7LF1DVT8lJEJnQUhPdT5vKzJuXyFGUC48alxPOTFoU1BYXnNYQGYoPXRkOXM4LllQPVlYUClNbGxQazRoPVswRVsyXEdUPFIqcWRoTDojKzsxWFJaVjpIInFsZyJIbnJCUkVZTFNYVmYxNGsuZ1RMWzJecDg7ZissM2hTa2NeY08rXDRHRGlCaCdiXGBiVUNJQDUnXDlcbycsLDskNSJtVjREJmYtNG1dOzgmLlMnWDZwbT9mZ2VCNThEdEtXJmloKCFhdCxGaC5HMVJbVkgmclhbS1EuPCYiX21JZm1Eb150U34+ZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgMjAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDYxIDAwMDAwIG4gCjAwMDAwMDAxMzMgMDAwMDAgbiAKMDAwMDAwMDI0MCAwMDAwMCBuIAowMDAwMDAwMzUyIDAwMDAwIG4gCjAwMDAwMDA1NDcgMDAwMDAgbiAKMDAwMDAwMDYzMCAwMDAwMCBuIAowMDAwMDAwNzQ1IDAwMDAwIG4gCjAwMDAwMDA5NDAgMDAwMDAgbiAKMDAwMDAwMTEzNSAwMDAwMCBuIAowMDAwMDAxMzMwIDAwMDAwIG4gCjAwMDAwMDE0NTAgMDAwMDAgbiAKMDAwMDAwMTY0NiAwMDAwMCBuIAowMDAwMDAxNzE2IDAwMDAwIG4gCjAwMDAwMDE5OTcgMDAwMDAgbiAKMDAwMDAwMjA4MiAwMDAwMCBuIAowMDAwMDA0ODM5IDAwMDAwIG4gCjAwMDAwMDYyODcgMDAwMDAgbiAKMDAwMDAwOTI2OSAwMDAwMCBuIAowMDAwMDEyMDM4IDAwMDAwIG4gCnRyYWlsZXIKPDwKL0lEIApbPDU1NWYwYmVlMGQxYzliNzMwOWE3MWRkYmQ2ZGRiYjZiPjw1NTVmMGJlZTBkMWM5YjczMDlhNzFkZGJkNmRkYmI2Yj5dCiUgUmVwb3J0TGFiIGdlbmVyYXRlZCBQREYgZG9jdW1lbnQgLS0gZGlnZXN0IChvcGVuc291cmNlKQoKL0luZm8gMTMgMCBSCi9Sb290IDEyIDAgUgovU2l6ZSAyMAo+PgpzdGFydHhyZWYKMTQ2OTAKJSVFT0YK" style="display:none;"></div>
+<div id="quick-reference-pdf" data-src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNSAwIFIgL0Y0IDYgMCBSIC9GNSA3IDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjEgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iagozIDAgb2JqCjw8Ci9CYXNlRm9udCAvSGVsdmV0aWNhLUJvbGQgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YyIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKNCAwIG9iago8PAovQ29udGVudHMgMTIgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAxMSAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNSAwIG9iago8PAovQmFzZUZvbnQgL1phcGZEaW5nYmF0cyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago2IDAgb2JqCjw8Ci9CYXNlRm9udCAvSGVsdmV0aWNhLUJvbGRPYmxpcXVlIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GNCAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjcgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjUgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago4IDAgb2JqCjw8Ci9Db250ZW50cyAxMyAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDExIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago5IDAgb2JqCjw8Ci9QYWdlTW9kZSAvVXNlTm9uZSAvUGFnZXMgMTEgMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iagoxMCAwIG9iago8PAovQXV0aG9yIChcKGFub255bW91c1wpKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwNjA1MTQ0MzEyKzAwJzAwJykgL0NyZWF0b3IgKFwodW5zcGVjaWZpZWRcKSkgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwNjA1MTQ0MzEyKzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKFwodW5zcGVjaWZpZWRcKSkgL1RpdGxlIChcKGFub255bW91c1wpKSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjExIDAgb2JqCjw8Ci9Db3VudCAyIC9LaWRzIFsgNCAwIFIgOCAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjEyIDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDIzNDIKPj4Kc3RyZWFtCkdhdG08bFlrY1AmSEE/OkBfUGY2OkRfV3BJUmdDZi9zJVQjKlpULF5TVEozU1pbYV5LUyhdM1JzMVlpKihHRmckWlFgZWA/SS1wQERyKFY9ciQxTF0/TlBUbF9mLDhQI19oZFdMb0hkcklYcDtNbEpGK1RUPHRRWkpuKyQ+bTRXSGQxUG9jMS9uaCt0O29cc2FFYnMySiZDN1BBKGIrXj1SS19gSlVALSthOU83ND5obVItQ2A1IVZYLjlxQDFrbE8+WCRwSTF0KWlwMSpoN3RzYTQ0Il5rLlVqMTFPPS1SO3JaXik8b1BeR3RgaE1OV0koXF1XZyNoLF5kc10hY0hRKVc/JiY2IVY0LGkoNWMwZSJLZGpQKEpRXSMlOU9pXiVSYVljOVxsVWlyYWdVLkw7KihoZDoiM2ldWmk+PTlIR1NSM0VRWEsmSyljbjJBTmZxcWBKbnVJNEk8RmUuWj5xP0s/JFdBO0Bjal1VWENDPmAwXVsyXj91WyQmR2RCOUBQJz9mbUVILGpNLyxAVUZoKlZtNURSaEEnTkxIJDYiMUlRVC9JR0leNzohbHVpRy1sOTNFcitWSmNDPE1jJDdHVysuNlgvWnNtZUlCRlJuK2Q+RzYuVUgpWXM8MlU2SyJrbG5uLFlNS0g0RC46c1VMOlY+PVczKUVaXl0/dClwPGIvKVk1NWIpPW8sdVtfRkFGLFJzUHAnUGVjLSs7UUYjalwmL29mKE5CLDtPTz5CTUFDQnNqak1nW2pYMDdUbzshSjsvIj5ccipCcW1EMVFhTyZBQzNjPyVOVk9kbFVPbm1OJlJyUVBrQGo4KkVmYm5kWk9sTCpyOyJVRS1eLSVHYS91YVspIXFTVU10amRSKUE6SFEqK2UyWD00Iz0kR1cuMUsrSU50WmJuV2laRF4pQHExZG04Y1tuZmxlOFlAJEk3QztIJk9cJ0E9OkZlJDBORF4+ZmclKWhkSV5KXVJkbFM9XTghIyxPOSMpR1dELjs+MFJPcChPKlZwWCRvWFozcmpgIitQU20sQ2QjXExXPkM/O0NDInNaQTBAWTRFOk4rbiNzOCdKLzloVzM3YjtVTEolcSJHL2hXVi02Y2wpUzw1ayNTPV43VlxWV1VGdSdyYWNRPi91OyIlPGkuZUpTTlhZSTwnOSNhcXBSOVhaakpUUllSa1FcYm5fYUhWay1jPCQkQzhNK2pwTTkiKlM2SDFkQFhZLTZcRC8tQVRdNVFiVFxAR2JzWSU8KF1JKjRbcCtYRmA9IiktRilBMlJca05sOWYyZnNkPDkxYXFVcVU4aSk0aEAiYEhJRW4kbnBIOzcoSDJsRDtXKE4/WUUpPC9mWUs7Jl9IISNGVy9mciNmTjkiQUAlNytJXm5nNXIlLF0oWjNXMGJxUkVGLUFRbDMzWUdmPCNKb25iX1xoW2ZadVJOOjNaOSJDOThvKXIvVWx1W0VebkwkVXNHYzJLNShwNy5YdChuM0hjNGxdNSpaNUs4P11TUXVYT11PWS9WaENfRztkUypTbFFrOm82V1VEc1xGT1JOQ0VcclhXTmJjZGVVLT9IUE1qcmUhQDFdVVclNVQ0Yj9OMzB0KCUoLy9PPkg/P2s6dTFubDpzKkouITZgMmEoVnQsRmlbInVNJT1BdVUjVjZVRThkbkRFYUEmbkdfblskO14wa0JCV2kwR2NcUFhFQl8kPSssWFYqZkxuZiFjSShvTGFhOigrZHUtZiEvbio4WWUyRF41XUErZ0JhLSNNP0k9IjxwTk5VZSViN0JuMm0nKCo4LC5xIiw/XSRrO2g8UiVWP3M5KGAwKCJqQUZvUydLQEc1SEFdQGU6MkdiN0MlLjU7P2hnKz1HUmhncF5HK0QyTktrOmMzWihCTz86OWxnZkwxYDFyS2xHS1pbKDk7ZmdWXS1vZmlubUdGISMxbWVDT2BvXE5QYCwhNnNBRjgiTF9TSllXV00mO0tyJiczJEp1JyMoa04lRGEocyJHcXBbOGUjQl8rWj1POl9iTmolYG0uOShoJWleOkhUJC1ZaTwraClmN1FobDRodW9VVmZFImRTUXJiNTNNbGNqZDUvLyViNjgwU2wxNTMwPSo6ciplNzIlUlg1JU9vVTJgTnJMWXVeV0RENTtpbUB1MygoMCFobidpIiMvaUpXKHRTY1kiazE3REFvJCktYEksK1drX0tpVT9YVVBbWmE6JHMiLy5CYkBNSSVdP2wmTWc5IU0oQmFwOFc1TlwkbmcsQzo3YSteIyhFQEIvdWAjdD48VVUiYXFYMXJRNGshcVJoWmleYUIyVlVoUjM8YzdoNktHXDYrNz9VZmIyI2Rbaj9zcytQYzxfXj0iV0NBPkVENF0oMUxFQGE8JFRNWjdrV004XFNnaXRYJkpvX3I6XiNuWzRfNEBDLl1XR2tBaFpyYFAtL1hNZ2AsZ3BUWlkwcE1qTCxTKDUybT8xKTQrPDo4ZVhmUVhAVTozRSIrYCtfTmxuVCg+UVU2Oj9PXHNmOURvMlk+QWtrJ0hGWnQ+bmE3PDohTlpuRjEvRFQiI1ouOC0oRkAkOz1bNWV1MTledSdjbl9qSl1Oay9fWz9SJlE6PipoZysrXFJQZDZgKmhSMGBYIyJaM084bFpOUlRFXCdxajZIJmxwc3BCYUklUUtNXy9GR2Z1XmdYZzdQRUI3TilYcl5tb11lITYhQGI2LTAwL3RYVEYvVGUxS2RKMTZTLEZPVzQxayc9Y1dfJkhYJkksTkRhRzApXVhPWTY9b3UzKHFaVmsocENkY25AUD5WVFw5LlkzUyVgXjIuTHQjWGpBRjQ3M0w3Sz1ocEFhXSpxKyZRLTtCO3V1UzlycE1yIWopVTovOz8/PixYQEpiMCJJRFdpWDlsQ1QkPW0iZ0haWEYrc2dgLztSNCVEIlYjYWFtL1AhYCtdbHFtNGQhKGkhNDBkI2A4JFFTbytuVCg3OiRxUCNxbT9YRjtJaytpaWttXGpEPjA8ODtObkpzWnElPTwtTVw+Mm9NJDpaWjctS1dDVjRwQDw0MlpfKjxRY2dLdDtbbj1WV1EmM2E4SlhUJSxvRissblAjLidvL2k/P2s1aWtEQS5cOjAyJlspKjwnc2QnNn4+ZW5kc3RyZWFtCmVuZG9iagoxMyAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAxODI0Cj4+CnN0cmVhbQpHYiIvJz1gYD1VJjpXNjdmVl9LNWBXdVU6YiJNJV06PyJycDZ0Lk9tQyU7NyZPRyY5NCdTPF1kSik6RF9SQ11OI0RdK1IvR1FJLmBwOzo0NEAsWEpyXkpQKCVCKl4wSjpuUzY2MGkzV2ImOlQvUVlrUGgkbF1uVyw3KmM8NUovXytsSCpVIXBgVGIvPVFWdF1ZYltIUz4oZElKT14tZW1nIVU0cmtEamJmV2ZtVkg8XmljXD5YQVRcVjJwLDchMTJLW00hMVxNNyJKSFV1SFBEOyVvSVxZLC5NZkJTK3E1WWdPPG5bRVFEXSdmUz50Zi1ZN1EvOm4yV1RNI1gpK2MoKEM5aklgLGtKJ2gmXUY0RjlNO3FlaEpIT21RLEJCaWpxdE1Jai1wNGRHJUlwYycnLTclKVAmSzZSckFZL3NdclIqM1Iqb0MoKSRaK3U1OFlFZElyOkJkN3FKUDc6SzZKOCJlKGxPTnRHUlNZXTpJYzpwaiJUSkgoO1FcTUFcLDlQWSg1RiRGSlI/SjksKmphXk1oWGMhPDMyKz8pVjsyWyo1QD0+PUMwYkBoSWdMVE5gLltVczExLWIhWy1TMWA8NTlPJlVeM2pBRGZIZFBAIlsnc2tTLVNrKCgwZi5yWFBjUEJAISJXXSZhLj4sX247XCssWCY+O3QnR1RKTUdTPmk9N29nMWpgKGtzTicsJHUyXjZQMyRrKT1fcWJQamUvOls3PiZiJGRdXUdjYCQxJkpIUm09STJgQi9IYzFWYGwvRUkoPEc0WVs4PnQ+IiY/QVlpQDZHZjwvSWVVOlhNZU1vOmlUVDdxX2olQT1IbkddMGxuPGtaKFk2b0hLKnJsJmdcKlxfbEM1VDUiIl1haVhzQUFxTExyUyUwRjJNYlY8YmVrNCpcM20xTFxaJDh0NTsuLSouR2tsYHVXNFxUPUZmNGFJakU8ODdfbUYyJSlORmBxOj8ic2pxYHIlbGxHJSo7RzlAR0V0JUxeXUE/dSZ0LTRLN1gnJFAhWERQZDdcSypNMzdvZVRCQSZyajo1N1tWQGdnSCdeZj00YTsmLXAhR0ptOSlBIzNJRzhSNDNhRCMkaUQnLW5lOCFyQjVGLUxBUDkkX2ZqJDFTaXJcUiY2U2F0SC1Vaj5KSl86PUYoPTV1bTZNUiwmKUk4Q1UkMm8hMSpqTWJxci0uYDtBPE1kM1VaImY+MjpGLDNAL0lYRyNqWkl0bVIlcGwuXHAvRV9waShBdC9FWFZHL1JoRUMmMXFzUVEwTVpVZWY4QlxLbzdEK0BPXGB1PmktdC1oZExiNkAkTlIjZi00KWg1WmVdb3MrLCwtOzRpKW5RSzMjb0JQamg8K204VCVmYkN0aEddKWV0R1g6N1dAQFxkQERdNUNrcEhpSiRbKyIxMkM7IyJKYyghTWE+JWZxTEA+aTpwQ0QpXTZLbWVkMWwiUzwwJF5IYGBRPS1nQWM2Pic5J1BMT1tvNkhBKEpnVF5Ram1CaEMpOFtNLyozOF4lPEE7J0NTajs1Tl5zWjgrPSItbzg9Q1RmZWdNW20ncj1jXVw7I1l1ci5hbF5aVypHJGk6Ilc7SzNTJWlfNFApVW8uKTFmQSlvL0Q+L1heUC9XPTZWPkdEdFdOZGdFbyIsPzg9YzlqaUw9S246XSllZ11XJFFvWl48aHVTOS1RYlpzYTdCLE9wMmc0cEhCai91dEIvRFJYTW9lQk4qM0wpc1hcYy8/Nl1sLHIrTTZRWj4oPTEmY0xeVy5WT1BhTi03XEhib1ZxNkFuV0U1ck9wOW8zTUUwSCRfcVhkbz0yTmAybyh0JC5IdEp0WCZZTmQ0MkEhTUNoVlIwVCQtLSdSZ1ojaUdaP19iNSU9dEsuWjVwV09XTih1L2JOV2FTLmE0SDFFJnQjdD9CTzk1RFdiNUBUSzBnZDoqQCFlIUhYWmhlR0wnVjdMUGA1P19kYHNOQmtYSihsTVhgYnVNPi9YZDEpS010PU86TjZeLlc0Xi8tPjohYW06aypmbStXSmJMSW1QX0lRJixNWio0Xi1DW0RxXSxVT0hyWS40QTtOdGQqOShzXT9aVC0vbURyOjcncSdJPmpqPyFxcG9NN0Q1XllXbSVvXmpWOk5AIUZnVjBfUG5nPzlyOiIrK3JnIicqW2BhdS8+M0ciLGdpNDk7ZG9tZjRDPUAmNWEnLEBZNiJkUi83PFNgbnEoQjdSTnQoLHFEaE5uS1JqNURzKSxgcT9oZFM0QCN0R2heUlpCb1xbNFsraistT0B1Z0pmVHQnaXNXXyZuYj0tNyJVNCJUJ0FRLkdzOWI3OjNdMGFEaC45Ql9tJFpOTU05P1ZWT0U5JSk2OkU9cXJfbVZVMlwhYG5gOkBWblFhKD1pV2g8PVBvMHBtU1xJImZCP1Voa0ZdZ1MrSFRDYHQiXlZGJmo4fj5lbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCAxNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwNjEgMDAwMDAgbiAKMDAwMDAwMDEzMiAwMDAwMCBuIAowMDAwMDAwMjM5IDAwMDAwIG4gCjAwMDAwMDAzNTEgMDAwMDAgbiAKMDAwMDAwMDU0NiAwMDAwMCBuIAowMDAwMDAwNjI5IDAwMDAwIG4gCjAwMDAwMDA3NDggMDAwMDAgbiAKMDAwMDAwMDg2MyAwMDAwMCBuIAowMDAwMDAxMDU4IDAwMDAwIG4gCjAwMDAwMDExMjcgMDAwMDAgbiAKMDAwMDAwMTQwOCAwMDAwMCBuIAowMDAwMDAxNDc0IDAwMDAwIG4gCjAwMDAwMDM5MDggMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8ZWUwODY1MjNiYzIyMDQ0ODI5NzcwZjNiMjU4OTFiMzM+PGVlMDg2NTIzYmMyMjA0NDgyOTc3MGYzYjI1ODkxYjMzPl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyAxMCAwIFIKL1Jvb3QgOSAwIFIKL1NpemUgMTQKPj4Kc3RhcnR4cmVmCjU4MjQKJSVFT0YK" style="display:none;"></div>
+
+<script>
+function openPdf(elementId, fallbackPath) {
+  try {
+    var encoded = document.getElementById(elementId).getAttribute('data-src');
+    var b64 = encoded.replace('data:application/pdf;base64,', '');
+    var binary = atob(b64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+    var blob = new Blob([bytes], { type: 'application/pdf' });
+    var url  = URL.createObjectURL(blob);
+    var win  = window.open(url, '_blank');
+    if (!win) { window.location.href = url; }
+  } catch(e) {
+    window.open(fallbackPath, '_blank');
+  }
+}
+function openParticipantInstructions() {
+  openPdf('participant-instructions-pdf', 'docs/Auracelle_Charlie_Participant_Instructions.pdf');
+}
+function openQuickReference() {
+  openPdf('quick-reference-pdf', 'docs/Auracelle_Charlie_Quick_Reference.pdf');
+}
+</script>
+
+</body>
+</html>
